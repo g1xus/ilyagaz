@@ -2,6 +2,7 @@ from telethon.tl.types import MessageEntityCustomEmoji
 
 from reader import Reader
 import os
+import json
 from my_session import MySession,ScheduleReaction
 from loguru import logger
 from typing import List
@@ -15,6 +16,28 @@ from telethon.errors import ChannelPrivateError
 import re
 from telethon import utils as tg_utils
 from contextlib import suppress
+
+SUBSCRIBE_CACHE_PATH = os.path.join('data', 'subscribed_cache.json')
+
+def _load_subscribe_cache() -> dict:
+    try:
+        with open(SUBSCRIBE_CACHE_PATH, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def _save_subscribe_cache(cache: dict):
+    os.makedirs('data', exist_ok=True)
+    with open(SUBSCRIBE_CACHE_PATH, 'w', encoding='utf-8') as f:
+        json.dump(cache, f, ensure_ascii=False, indent=2)
+
+def _is_cached(cache: dict, session_name: str, channel: str) -> bool:
+    return channel in cache.get(session_name, [])
+
+def _mark_cached(cache: dict, session_name: str, channel: str):
+    cache.setdefault(session_name, [])
+    if channel not in cache[session_name]:
+        cache[session_name].append(channel)
 
 reader = Reader()
 
@@ -38,13 +61,23 @@ def extract_emojis_from_message(event, allowed_emoji):
     return emojis
 
 async def subscribe_to_channels(sessions: List[MySession]):
+    cache = _load_subscribe_cache()
+    cache_dirty = False
+
     for channel in reader.get_channels_entities_from_file():
         # Подписываем КАЖДУЮ сессию на канал, чтобы у всех был entity/access_hash в кеше
         # (иначе Telethon не сможет отправить реакцию по одному лишь channel_id).
         channel_id = None
         ok = 0
+        had_network_calls = False
         random.shuffle(sessions)
         for session in sessions:
+            if _is_cached(cache, session.session_name, channel):
+                logger.info(f"[{session.session_name}] Канал {channel} уже в кеше, пропускаю проверку")
+                ok += 1
+                continue
+
+            had_network_calls = True
             cid = await session.get_channel_id(channel)
             if not cid:
                 cid = await session.subscribe_to_channel(channel)
@@ -54,15 +87,21 @@ async def subscribe_to_channels(sessions: List[MySession]):
                 channel_id = cid
             if cid:
                 ok += 1
+                _mark_cached(cache, session.session_name, channel)
+                cache_dirty = True
 
         # Если все сессии отработали успешно, записываем данные канала
         reader.write_channel_id_uniq(channel,channel_id)
         logger.info(f"Канал {channel}: подписано/валидно {ok}/{len(sessions)} сессий, channel_id={channel_id}")
 
-        # Задержка между каждым каналом, если на него все подписались
-        sleep_time = 1
-        logger.info(f"Ожидаю {sleep_time} сек для получения ID следующего канала")
-        await asyncio.sleep(sleep_time)
+        # Задержка между каналами только если были реальные сетевые проверки
+        if had_network_calls:
+            sleep_time = 1
+            logger.info(f"Ожидаю {sleep_time} сек для получения ID следующего канала")
+            await asyncio.sleep(sleep_time)
+
+    if cache_dirty:
+        _save_subscribe_cache(cache)
 
 async def validate_sessions(sessions: List[MySession]):
     logger.info("Запуск валидации")
@@ -72,7 +111,11 @@ async def validate_sessions(sessions: List[MySession]):
         if client:
             res.append(session)
         else:
-            logger.warning(f"Сессия {session.session_name} мертва. Она не будет учавстовать в коментинге")
+            logger.warning(f"Сессия {session.session_name} мертва. Удаляю файл сессии.")
+            try:
+                os.remove(session.session_name)
+            except Exception as e:
+                logger.error(f"Не удалось удалить файл сессии {session.session_name}: {e}")
     return res
 
 
