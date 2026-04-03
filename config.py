@@ -49,59 +49,7 @@ CHANNELS = [
             10: 50,
             15: 25
         },
-        'count': 75
-    },
-
-    {
-        'channel': 'https://t.me/+76y3l4vr3js2M2Iy', #romantic
-        'reactions': {
-            5422538735394766352: 50,
-            5217466996337165348: 30,
-            5427342093674630148: 20,
-        },
-        'post_reactions':{
-            5422538735394766352: 90,
-        },
-        'time': {
-            5: 30,
-            10: 50,
-            15: 25
-        },
-        'count': 75
-    },
-    {
-        'channel': 'https://t.me/+Wcj9AoXBD4xkNDli', #mk
-        'reactions': {
-            '🔥': 60,
-            '👍': 25,
-            '❤️': 15,
-        },
-        'post_reactions':{
-            '🔥': 90,
-        },
-        'time': {
-            5: 30,
-            10: 50,
-            15: 25
-        },
-        'count': 75
-    },
-    {
-        'channel': 'https://t.me/+I4PbQfqc4FczMmYy', #sava
-        'reactions': {
-            '🔥': 70,
-            '👍': 20,
-            '❤️': 10,
-        },
-        'post_reactions':{
-            '🔥': 90,
-        },
-        'time': {
-            5: 30,
-            10: 50,
-            15: 25
-        },
-        'count': 50
+        'count': 30
     },
     {
         'channel': 'https://t.me/+Zn16bzS9CO9lY2Ni', #PO
@@ -118,7 +66,7 @@ CHANNELS = [
             10: 50,
             15: 25
         },
-        'count': 50
+        'count': 20
     },
     {
         'channel': 'https://t.me/+d4R7BbFuh-tmMDEy', #fadeev
@@ -135,7 +83,7 @@ CHANNELS = [
             10: 50,
             15: 25
         },
-        'count': 50
+        'count': 20
     },
     {
         'channel': 'https://t.me/+tWcKcVmIVIE5MTc6', #ziga
@@ -152,41 +100,7 @@ CHANNELS = [
             10: 50,
             15: 25
         },
-        'count': 30
-    },
-    {
-        'channel': 'https://t.me/+jSg04Ot2gOtkMjVi', #vadim
-        'reactions': {
-            '🔥': 70,
-            '👍': 20,
-            '❤️': 10,
-        },
-        'post_reactions':{
-            '🔥': 90,
-        },
-        'time': {
-            5: 30,
-            10: 50,
-            15: 25
-        },
-        'count': 50
-    },
-{
-        'channel': 'https://t.me/+R24tsmL0Pv0yMWRi', #vvs
-        'reactions': {
-            '🔥': 70,
-            '👍': 20,
-            '❤️': 10,
-        },
-        'post_reactions':{
-            '🔥': 90,
-        },
-        'time': {
-            5: 30,
-            10: 50,
-            15: 25
-        },
-        'count': 15
+        'count': 20
     },
     {
         'channel': 'https://t.me/+HggLUb_pd4gyMjgy', #academy
@@ -203,40 +117,9 @@ CHANNELS = [
             10: 50,
             15: 25
         },
-        'count': 15
+        'count': 5
     },
-    {
-        'channel': 'https://t.me/+g8ZCRKFp0300MzYy', #test
-        'reactions': {
-            '🔥': 30,
-            '👍': 60,
-            '❤️': 10,
-        },
-        'post_reactions':{
-            '🔥': 90,
-        },
-        'time': {
-            5: 30,
-            10: 50,
-            15: 25
-        },
-        'count': 15
-    },
-    
-
-        {
-        'channel': 'https://t.me/+EKzlhnSGoJlkYjUy', #mara
-        'reactions': {
-            '👍': 100,
-        },
-        'post_reactions':{
-            '🔥': 3,
-        },
-        'time': {
-            5: 100,
-        },
-        'count': 3
-    },{
+    ,{
         'channel': 'https://t.me/+UYso59o-cMM4OWM6', #tomer
         'reactions': {
             '🔥': 65,
