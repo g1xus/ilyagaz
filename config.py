@@ -119,7 +119,7 @@ CHANNELS = [
         },
         'count': 5
     },
-    ,{
+    {
         'channel': 'https://t.me/+UYso59o-cMM4OWM6', #tomer
         'reactions': {
             '🔥': 65,
