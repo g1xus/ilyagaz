@@ -11,7 +11,7 @@ class Reader():
         return [data[2] for data in self._channels_entities]
 
     def get_channels_ids(self):
-        return [data[1] for data in self._channels_entities if data[1] is not None]
+        return [data[1] for data in self._channels_entities]
 
     def get_channel_entity_for_id(self, channel_id: int):
         return [data[0] for data in self._channels_entities if data[1] == channel_id].pop()

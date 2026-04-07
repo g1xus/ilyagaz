@@ -45,11 +45,6 @@ def flood_wait_handler(func):
     return wrapper
 
 
-def _socks5_tuple_with_rdns(proxy_tuple: tuple, rdns: bool) -> tuple:
-    """Копия кортежа PySocks/Telethon с другим флагом remote DNS (индекс 3)."""
-    return (proxy_tuple[0], proxy_tuple[1], proxy_tuple[2], rdns, proxy_tuple[4], proxy_tuple[5])
-
-
 class SessionFunctools:
     @staticmethod
     async def get_proxy():
@@ -59,19 +54,11 @@ class SessionFunctools:
                 return
             proxy_host, proxy_port, proxy_user, proxy_pass = random.choice(content).strip().split(':')
 
-            return (
-                socks.SOCKS5,
-                proxy_host,
-                int(proxy_port),
-                getattr(config, "PROXY_SOCKS5_RDNS", False),
-                proxy_user,
-                proxy_pass,
-            )
+            return socks.SOCKS5, proxy_host, int(proxy_port), True, proxy_user, proxy_pass
 
 
 class ScheduleReaction():
-    def __init__(self, channel: str, channel_id: int, post_id: int, reaction: str, delay: int):
-        self.channel = channel
+    def __init__(self, channel_id: int, post_id: int, reaction: str, delay: int):
         self.channel_id = channel_id
         self.post_id = post_id
         self.reaction = reaction
@@ -84,64 +71,6 @@ class MySession(SessionFunctools):
         self.session_name = session_name
         self.client: Optional[TelegramClient] = None
 
-    async def _safe_disconnect_client(self) -> None:
-        if self.client:
-            try:
-                await self.client.disconnect()
-            except Exception:
-                pass
-
-    async def _attempt_connect(
-        self,
-        proxy_tuple: Optional[tuple],
-        proxy_label: str,
-        *,
-        success_log: str,
-        timeout_extra: str = "",
-    ) -> bool:
-        """Возвращает True, если self.client подключён и авторизован."""
-        self.proxy = proxy_tuple
-        self.client = TelegramClient(
-            session=self.session_name,
-            api_id=config.API_ID,
-            api_hash=config.API_HASH,
-            device_model="GU604VY-NM058WS",
-            system_version="Windows 11",
-            app_version="5.6.3 x64",
-            lang_code='EN',
-            system_lang_code='EN',
-            proxy=proxy_tuple,
-            connection=ConnectionTcpIntermediate,
-            connection_retries=10,
-            request_retries=5,
-            timeout=45
-        )
-        try:
-            await asyncio.wait_for(
-                self.client.connect(),
-                timeout=config.CONNECT_TIMEOUT,
-            )
-            me = await self.client.get_me()
-            if me is None:
-                logger.error(f"Сессия {self.session_name} мертва")
-                await self._safe_disconnect_client()
-                return False
-            logger.info(success_log)
-            return True
-        except asyncio.TimeoutError:
-            extra = timeout_extra or f" ({proxy_label})"
-            logger.info(
-                f"Ошибка при подключении к сессии {self.session_name} | "
-                f"Таймаут {config.CONNECT_TIMEOUT} с{extra}"
-            )
-            await self._safe_disconnect_client()
-        except BaseException as e:
-            logger.info(
-                f"Ошибка при подключении к сессии {self.session_name} | {e}. Пробую еще раз"
-            )
-            await self._safe_disconnect_client()
-        return False
-
     async def get_client(self, update=False) -> Optional[TelegramClient]:
         """
         Инициализирует и возвращает TelegramClient.
@@ -153,65 +82,38 @@ class MySession(SessionFunctools):
         if self.client and not update:
             return self.client
 
-        tried_with_proxy = False
-        for _ in range(config.CONNECT_PROXY_RETRIES):
-            proxy_tuple = await self.get_proxy()
-            if proxy_tuple is not None:
-                tried_with_proxy = True
-            proxy_label = (
-                f"{proxy_tuple[1]}:{proxy_tuple[2]}"
-                if proxy_tuple and len(proxy_tuple) >= 3
-                else "без прокси"
-            )
-            suffix = (
-                f" ({proxy_label}). Беру другое прокси"
-                if config.CONNECT_PROXY_RETRIES > 1
-                else f" ({proxy_label})"
-            )
+        for _ in range(3):
+            self.proxy = await self.get_proxy()
 
-            rdns_tries = [getattr(config, "PROXY_SOCKS5_RDNS", False)]
-            if (
-                proxy_tuple is not None
-                and getattr(config, "PROXY_TRY_ALT_RDNS", True)
-            ):
-                alt = not rdns_tries[0]
-                if alt not in rdns_tries:
-                    rdns_tries.append(alt)
-
-            for attempt_idx, rdns_val in enumerate(rdns_tries):
-                p = proxy_tuple if proxy_tuple is None else _socks5_tuple_with_rdns(proxy_tuple, rdns_val)
-                if proxy_tuple is not None and len(rdns_tries) > 1 and attempt_idx > 0:
-                    logger.info(
-                        f"Повтор подключения {self.session_name} через тот же SOCKS5, "
-                        f"rdns={rdns_val} (альтернатива при таймауте)"
-                    )
-                ok = await self._attempt_connect(
-                    p,
-                    proxy_label,
-                    success_log=(
-                        f"Подключен к сесcии {self.session_name} "
-                        f"{'с прокси ' + str(p) if p else 'напрямую (proxy.txt пуст)'}"
-                    ),
-                    timeout_extra=suffix,
-                )
-                if ok:
-                    return self.client
-
-        if config.CONNECT_FALLBACK_DIRECT and tried_with_proxy:
-            ok = await self._attempt_connect(
-                None,
-                "напрямую, без прокси",
-                success_log=(
-                    f"Подключен к сесcии {self.session_name} "
-                    f"напрямую (fallback direct после прокси из proxy.txt)"
-                ),
-                timeout_extra=" (напрямую, без прокси)",
+            self.client = TelegramClient(
+                session=self.session_name,
+                api_id=config.API_ID,
+                api_hash=config.API_HASH,
+                device_model="GU604VY-NM058WS",
+                system_version="Windows 11",
+                app_version="5.6.3 x64",
+                lang_code='EN',
+                system_lang_code='EN',
+                proxy=self.proxy,
+                connection=ConnectionTcpIntermediate,
+                connection_retries=10,
+                request_retries=5,
+                timeout=45
             )
-            if ok:
+            try:
+                await asyncio.wait_for(self.client.connect(), timeout=15)
+                me = await self.client.get_me()
+                if me is None:
+                    logger.error(f"Сессия {self.session_name} мертва")
+                    return
+                logger.info(f"Подключен к сесcии {self.session_name} с прокси {self.proxy}")
                 return self.client
-
-        await self._safe_disconnect_client()
-        return None
+            except asyncio.TimeoutError:
+                logger.info(f"Ошибка при подключении к сессии {self.session_name} | Слишком долгое ожидание. Беру другое прокси")
+            except BaseException as e:
+                logger.info(f"Ошибка при подключении к сессии {self.session_name} | {e}. Пробую еще раз")
+        # Если не вышло, то просто отключаемся
+        await self.client.disconnect()
 
     async def subscribe_to_channel(self,channel_identifier: str) -> Optional[Tuple[int,int]]:
         """
@@ -293,10 +195,8 @@ class MySession(SessionFunctools):
             channel_id = (int(str(-100) + str(channel_id)))
 
             # Если пользователя нет в канале, все равно возвращаем None
-            # ВАЖНО: GetParticipantRequest надежно работает с entity/InputChannel,
-            # а не с "-100..." chat_id, поэтому проверяем по entity.
-            if not (await self.is_user_in_channel(entity)):
-                return None
+            if not (await self.is_user_in_channel(channel_id)):
+                return
 
             return channel_id
         except Exception as e:
@@ -333,17 +233,6 @@ class MySession(SessionFunctools):
             # Отправляем
             client = await self.get_client()
 
-            # ВАЖНО: для SendReactionRequest нужен peer с access_hash (InputPeer),
-            # поэтому резолвим канал по идентификатору (username/инвайт/ссылка) для каждой сессии.
-            try:
-                peer = await client.get_input_entity(reaction.channel)
-            except Exception as e:
-                logger.info(
-                    f"Сессия {self.session_name} не может разрешить канал '{reaction.channel}' "
-                    f"(channel_id={reaction.channel_id}). Ошибка: {e}"
-                )
-                return
-
             # Превращаем то, что пришло из конфига, в объект Reaction*
             if isinstance(reaction.reaction, int):
                 # считаем, что int = document_id премиум-эмодзи
@@ -353,7 +242,7 @@ class MySession(SessionFunctools):
                 emotions = [types.ReactionEmoji(emoticon=reaction.reaction)]
 
             await client(SendReactionRequest(
-                peer=peer,
+                peer=reaction.channel_id,
                 msg_id=reaction.post_id,
                 reaction=emotions
             ))
