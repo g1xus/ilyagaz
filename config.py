@@ -135,6 +135,22 @@ CHANNELS = [
         },
         'count': 30
     },
-    
+    {
+        'channel': 'https://t.me/+I4PbQfqc4FczMmYy', #tomer
+        'reactions': {
+            '🔥': 65,
+            '👍': 35,
+        },
+        'post_reactions':{
+            '🔥': 90,
+        },
+        'time': {
+            5: 30,
+            10: 50,
+            15: 25
+        },
+        'count': 10
+    },
+
     
 ]

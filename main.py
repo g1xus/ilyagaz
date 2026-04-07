@@ -1,5 +1,17 @@
 from telethon.tl.types import MessageEntityCustomEmoji
 
+# Patch Telethon to gracefully skip unknown Telegram API constructor IDs
+# (e.g. dialogFilterChatlist 0x1c32b11c added in newer Telegram layers)
+import telethon.tl.tlobject as _tl_mod
+from telethon.errors.common import TypeNotFoundError as _TypeNotFoundError
+_orig_tl_read = _tl_mod.TLObject.read
+def _safe_tl_read(reader, *args):
+    try:
+        return _orig_tl_read(reader, *args)
+    except _TypeNotFoundError:
+        return None
+_tl_mod.TLObject.read = staticmethod(_safe_tl_read)
+
 from reader import Reader
 import os
 import json
