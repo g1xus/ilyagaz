@@ -1,16 +1,18 @@
 from telethon.tl.types import MessageEntityCustomEmoji
 
 # Patch Telethon to gracefully skip unknown Telegram API constructor IDs
-# (e.g. dialogFilterChatlist 0x1c32b11c added in newer Telegram layers)
-import telethon.tl.tlobject as _tl_mod
+# (e.g. dialogFilterChatlist 0x1c32b11c added in newer Telegram layers).
+# Without this patch, Telethon catches TypeNotFoundError in updates.py
+# and calls disconnect(), killing the client silently.
+from telethon.extensions.binaryreader import BinaryReader as _BinaryReader
 from telethon.errors.common import TypeNotFoundError as _TypeNotFoundError
-_orig_tl_read = _tl_mod.TLObject.read
-def _safe_tl_read(reader, *args):
+_orig_tgread_object = _BinaryReader.tgread_object
+def _safe_tgread_object(self):
     try:
-        return _orig_tl_read(reader, *args)
+        return _orig_tgread_object(self)
     except _TypeNotFoundError:
         return None
-_tl_mod.TLObject.read = staticmethod(_safe_tl_read)
+_BinaryReader.tgread_object = _safe_tgread_object
 
 from reader import Reader
 import os
