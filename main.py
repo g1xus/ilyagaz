@@ -14,6 +14,21 @@ def _safe_tgread_object(self):
         return None
 _BinaryReader.tgread_object = _safe_tgread_object
 
+# Patch messagebox.set_state to handle None gracefully (Telethon v1.42+).
+# When tgread_object returns None for an unknown type, the deserialized diff
+# can contain None fields. set_state(None) then crashes with AttributeError,
+# causing a "Fatal error handling updates" and client disconnect.
+try:
+    from telethon._updates.messagebox import MessageBox as _MessageBox
+    _orig_set_state = _MessageBox.set_state
+    def _safe_set_state(self, state, reset=False):
+        if state is None:
+            return
+        return _orig_set_state(self, state, reset=reset)
+    _MessageBox.set_state = _safe_set_state
+except (ImportError, AttributeError):
+    pass
+
 from reader import Reader
 import os
 import json
