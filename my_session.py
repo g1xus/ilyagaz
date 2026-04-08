@@ -241,8 +241,14 @@ class MySession(SessionFunctools):
                 # обычный Unicode-эмодзи
                 emotions = [types.ReactionEmoji(emoticon=reaction.reaction)]
 
+            try:
+                input_peer = await client.get_input_entity(reaction.channel_id)
+            except ValueError:
+                await client.get_dialogs(limit=None)
+                input_peer = await client.get_input_entity(reaction.channel_id)
+
             await client(SendReactionRequest(
-                peer=reaction.channel_id,
+                peer=input_peer,
                 msg_id=reaction.post_id,
                 reaction=emotions
             ))
