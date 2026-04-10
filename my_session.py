@@ -8,7 +8,9 @@ from telethon import TelegramClient
 from telethon.errors import InviteHashExpiredError, InviteHashInvalidError,UserAlreadyParticipantError
 from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest
-from telethon.tl.functions.channels import GetFullChannelRequest
+from telethon.tl.functions.channels import GetFullChannelRequest, GetChannelsRequest
+from telethon.tl.types import InputChannel
+from telethon import utils as telethon_utils
 from typing import Tuple, Optional
 from loguru import logger
 import asyncio
@@ -244,8 +246,16 @@ class MySession(SessionFunctools):
             try:
                 input_peer = await client.get_input_entity(reaction.channel_id)
             except ValueError:
-                await client.get_dialogs(limit=None)
-                input_peer = await client.get_input_entity(reaction.channel_id)
+                try:
+                    await client.get_dialogs(limit=None)
+                    input_peer = await client.get_input_entity(reaction.channel_id)
+                except ValueError:
+                    result = await client(GetChannelsRequest(
+                        [InputChannel(channel_id=reaction.channel_id, access_hash=0)]
+                    ))
+                    if not result.chats:
+                        raise
+                    input_peer = telethon_utils.get_input_peer(result.chats[0])
 
             await client(SendReactionRequest(
                 peer=input_peer,

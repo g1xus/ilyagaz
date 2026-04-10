@@ -35,23 +35,6 @@ CHANNELS = [
         'count': 75
     },
     {
-        'channel': 'https://t.me/+D5jjZePsfOMzMjZi', #surf
-        'reactions': {
-            5334725814040674667: 50,
-            5251583347498434053: 30,
-            5352871660024246779: 20,
-        },
-        'post_reactions':{
-            5323470315370585285: 90
-        },
-        'time': {
-            5: 30,
-            10: 50,
-            15: 25
-        },
-        'count': 30
-    },
-    {
         'channel': 'https://t.me/+Zn16bzS9CO9lY2Ni', #PO
         'reactions': {
             '🔥': 70,
@@ -69,7 +52,7 @@ CHANNELS = [
         'count': 20
     },
     {
-        'channel': 'https://t.me/+d4R7BbFuh-tmMDEy', #fadeev
+        'channel': 'https://t.me/+GNKgVpwP_WFlMTAy', #тест
         'reactions': {
             '🔥': 70,
             '👍': 20,
@@ -85,72 +68,4 @@ CHANNELS = [
         },
         'count': 20
     },
-    {
-        'channel': 'https://t.me/+tWcKcVmIVIE5MTc6', #ziga
-        'reactions': {
-            '🔥': 70,
-            '👍': 20,
-            '❤️': 10,
-        },
-        'post_reactions':{
-            '🔥': 90,
-        },
-        'time': {
-            5: 30,
-            10: 50,
-            15: 25
-        },
-        'count': 20
-    },
-    {
-        'channel': 'https://t.me/+HggLUb_pd4gyMjgy', #academy
-        'reactions': {
-            '🔥': 30,
-            '👍': 60,
-            '❤️': 10,
-        },
-        'post_reactions':{
-            '🔥': 90,
-        },
-        'time': {
-            5: 30,
-            10: 50,
-            15: 25
-        },
-        'count': 5
-    },
-    {
-        'channel': 'https://t.me/+UYso59o-cMM4OWM6', #tomer
-        'reactions': {
-            '🔥': 65,
-            '👍': 35,
-        },
-        'post_reactions':{
-            '🔥': 90,
-        },
-        'time': {
-            5: 30,
-            10: 50,
-            15: 25
-        },
-        'count': 30
-    },
-    {
-        'channel': 'https://t.me/+I4PbQfqc4FczMmYy', #tomer
-        'reactions': {
-            '🔥': 65,
-            '👍': 35,
-        },
-        'post_reactions':{
-            '🔥': 90,
-        },
-        'time': {
-            5: 30,
-            10: 50,
-            15: 25
-        },
-        'count': 10
-    },
-
-    
 ]
